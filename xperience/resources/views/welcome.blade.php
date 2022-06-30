@@ -6,7 +6,7 @@
 
 <body>
 
-	<!--Home section--->
+	<!--Dashboard section--->
 	<section class="home" id="home">
 		<div class="home-text">
 			<h1>Ready For <br>your New Adventure?</h1>
