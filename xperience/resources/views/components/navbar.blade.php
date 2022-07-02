@@ -31,7 +31,7 @@
                         @if(Auth::user()->avatar)
                            <img src="{{Auth::user()->avatar}}" class="user-photo" alt="" style="border-radius: 50%">
                         @else
-                            <img src="https://cdn-icons.flaticon.com/png/512/2966/premium/2966737.png?token=exp=1650575382~hmac=8331ca6f5206e057b9ea99d58527c129" style="border-radius: 50%" class="user-photo" alt="">
+                            <img src="https://ui-avatars.com/api/?name=Admin" style="border-radius: 50%" class="user-photo" alt="">
                         @endif
                         
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="right: 0; left: auto">
