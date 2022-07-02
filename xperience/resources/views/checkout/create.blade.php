@@ -58,30 +58,20 @@
                                 </div>
                                 
                                 <div class="mb-4">
-                                    <label  class="form-label">Card Number</label>                                    
-                                    <input type="number" name="card_number" required class="form-control {{$errors->has('card_number') ? 'is-invalid' :''}}" 
+                                    <label  class="form-label">Phone Number</label>                                    
+                                    <input type="number" name="phone" required class="form-control {{$errors->has('phone') ? 'is-invalid' :''}}" 
                                     aria-describedby="emailHelp">
-                                    @if ($errors->has('card_number'))
-                                        <p class="text-danger">{{$errors->first('card_number')}}</p>
+                                    @if ($errors->has('phone'))
+                                        <p class="text-danger">{{$errors->first('phone')}}</p>
                                     @endif   
                                 </div>
-                                <div class="mb-5">
-                                    <div class="row">
-                                        <div class="col-lg-6 col-12">
-                                            <label class="form-label">Expired</label>
-                                            <input type="month" name="expired" required class="form-control {{$errors->has('expired') ? 'is-invalid' :''}}" aria-describedby="emailHelp">
-                                            @if ($errors->has('expired'))
-                                            <p class="text-danger">{{$errors->first('expired')}}</p>
-                                            @endif   
-                                        </div>
-                                        <div class="col-lg-6 col-12">
-                                            <label class="form-label">CVC</label>
-                                            <input type="number" maxlength="3" required name="cvc" class="form-control {{$errors->has('cvc') ? 'is-invalid' :''}}" aria-describedby="emailHelp">
-                                            @if ($errors->has('cvc'))
-                                            <p class="text-danger">{{$errors->first('cvc')}}</p>
-                                            @endif   
-                                        </div>
-                                    </div>
+                                <div class="mb-4">                                                                           
+                                            <label class="form-label">Nationality</label>
+                                            <input type="text" name="nationality" required class="form-control {{$errors->has('nationality') ? 'is-invalid' :''}}" aria-describedby="emailHelp">
+                                            @if ($errors->has('nationality'))
+                                            <p class="text-danger">{{$errors->first('nationality')}}</p>
+                                            @endif                                                                              
+           
                                 </div>
                                 <button type="submit" class="w-100 btn btn-primary">Pay Now</button>
                                 <p class="text-center subheader mt-4">

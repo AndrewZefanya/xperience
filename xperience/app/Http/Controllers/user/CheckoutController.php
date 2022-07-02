@@ -5,7 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Checkout;
 use Illuminate\Http\Request;
-use Illuminate\Session\Store;
+use App\Http\Requests\User\Checkout\Store;
 use App\Mail\Checkout\AfterCheckout;
 use App\Models\Trip;
 use App\Models\Discount;
@@ -19,7 +19,10 @@ class CheckoutController extends Controller
 
     public function __construct()
     {
-       
+        Midtrans\Config::$serverKey = env('MIDTRANS_SERVERKEY');
+        Midtrans\Config::$isProduction = env('MIDTRANS_IS_PRODUCTION');
+        Midtrans\Config::$isSanitized = env('MIDTRANS_IS_SANITIZED');
+        Midtrans\Config::$is3ds = env('MIDTRANS_IS_3DS');
     }
 
     /**
@@ -37,46 +40,60 @@ class CheckoutController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create(Trip $trip)
+    public function create(Trip $trip, Request $request)
     {
+       
         return view('checkout.create', [
             'trip' => $trip
         ]);
     }
 
-
-    public function store(Request $request, Trip $trip)
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Store $request, Trip $trip)
     {
         // mapping request data
         $data = $request->all();
         $data['user_id'] = Auth::id();
         $data['trip_id'] = $trip->id;
 
-         // update user data
-         $user = Auth::user();
-         $user->email = $data['email'];
-         $user->name = $data['name'];
-         $user->country = $data['country'];
-         
-         $user->save();
+        // update user data
+        $user = Auth::user();
+        $user->email = $data['email'];
+        $user->name = $data['name'];
+        $user->country = $data['country'];
+        
 
-           // create checkout
-           $checkout = Checkout::create($data);
-           $this->getSnapRedirect($checkout);
+       
+        $user->save();
 
-         // sending email
-         Mail::to(Auth::user()->email)->send(new AfterCheckout($checkout));
+        // checkout discount
+        if ($request->discount) {
+            $discount = Discount::whereCode($request->discount)->first();
+            $data['discount_id'] = $discount->id;
+            $data['discount_percentage'] = $discount->percentage;
+        }
+
+        // create checkout
+        $checkout = Checkout::create($data);
+        $this->getSnapRedirect($checkout);
+
+        // sending email
+        Mail::to(Auth::user()->email)->send(new AfterCheckout($checkout));
 
         return redirect(route('checkout.success'));
-       
     }
 
-
-    public function success()
-    {
-        return view('checkout.success');
-    }
-
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Checkout  $checkout
+     * @return \Illuminate\Http\Response
+     */
     public function show(Checkout $checkout)
     {
         //
@@ -116,128 +133,131 @@ class CheckoutController extends Controller
         //
     }
 
+    public function success()
+    {
+        return view('checkout.success');
+    }
 
     /**
      * Midtrans Handler
      */
     public function getSnapRedirect(Checkout $checkout)
     {
-        // $orderId = $checkout->id.'-'.Str::random(5);
-        // $price = $checkout->Camp->price * 1000;
+        $orderId = $checkout->id.'-'.Str::random(5);
+        $price = $checkout->Trip->price * 1000;
 
-        // $checkout->midtrans_booking_code = $orderId;
-        // $discountPrice = 0;
-        // $item_details[] = [
-        //     'id' => $orderId,
-        //     'price' => $price,
-        //     'quantity' => 1,
-        //     'name' => "Payment for {$checkout->Camp->title} Camp"
-        // ];
+        $checkout->midtrans_booking_code = $orderId;
+        $discountPrice = 0;
+        $item_details[] = [
+            'id' => $orderId,
+            'price' => $price,
+            'quantity' => 1,
+            'name' => "Payment for {$checkout->Trip->title} Trip"
+        ];
 
-        // $discountPrice = 0;
-        // if ($checkout->Discount) {
-        //     $discountPrice = $price * $checkout->discount_percentage / 100;
-        //     $item_details[] = [
-        //         'id' => $checkout->Discount->code,
-        //         'price' => -$discountPrice,
-        //         'quantity' => 1,
-        //         'name' => "Discount {$checkout->Discount->name} ({$checkout->discount_percentage}%)"
-        //     ];
-        // }
+        $discountPrice = 0;
+        if ($checkout->Discount) {
+            $discountPrice = $price * $checkout->discount_percentage / 100;
+            $item_details[] = [
+                'id' => $checkout->Discount->code,
+                'price' => -$discountPrice,
+                'quantity' => 1,
+                'name' => "Discount {$checkout->Discount->name} ({$checkout->discount_percentage}%)"
+            ];
+        }
 
-        // $total = $price - $discountPrice;
-        // $transaction_details = [
-        //     'order_id' => $orderId,
-        //     'gross_amount' => $total
-        // ];
+        $total = $price - $discountPrice;
+        $transaction_details = [
+            'order_id' => $orderId,
+            'gross_amount' => $total
+        ];
 
-        // $userData = [
-        //     "first_name" => $checkout->User->name,
-        //     "last_name" => "",
-        //     "address" => $checkout->User->address,
-        //     "city" => "",
-        //     "postal_code" => "",
-        //     "phone" => $checkout->User->phone,
-        //     "country_code" => "IDN",
-        // ];
+        $userData = [
+            "first_name" => $checkout->User->name,
+            "last_name" => "",
+            "nationality" => $checkout->User->nationality,
+            "city" => "",
+            "postal_code" => "",
+            
+            "country_code" => "IDN",
+        ];
 
-        // $customer_details = [
-        //     "first_name" => $checkout->User->name,
-        //     "last_name" => "",
-        //     "email" => $checkout->User->email,
-        //     "phone" => $checkout->User->phone,
-        //     "billing_address" => $userData,
-        //     "shipping_address" => $userData,
-        // ];
+        $customer_details = [
+            "first_name" => $checkout->User->name,
+            "last_name" => "",
+            "email" => $checkout->User->email,
+            
+            "billing_address" => $userData,
+            "shipping_address" => $userData,
+        ];
 
-        // $midtrans_params = [
-        //     'transaction_details' => $transaction_details,
-        //     'customer_details' => $customer_details,
-        //     'item_details' => $item_details,
-        // ];
+        $midtrans_params = [
+            'transaction_details' => $transaction_details,
+            'customer_details' => $customer_details,
+            'item_details' => $item_details,
+        ];
 
-        // try {
-        //     // Get Snap Payment Page URL
-        //     $paymentUrl = \Midtrans\Snap::createTransaction($midtrans_params)->redirect_url;
-        //     $checkout->midtrans_url = $paymentUrl;
-        //     $checkout->total = $total;
-        //     $checkout->save();
+        try {
+            // Get Snap Payment Page URL
+            $paymentUrl = \Midtrans\Snap::createTransaction($midtrans_params)->redirect_url;
+            $checkout->midtrans_url = $paymentUrl;
+            $checkout->total = $total;
+            $checkout->save();
 
-        //     return $paymentUrl;
-        // } catch (Exception $e) {
-        //     return false;
-        // }
+            return $paymentUrl;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
-    // public function midtransCallback(Request $request)
-    // {
-    //     $notif = $request->method() == 'POST' ? new Midtrans\Notification() : Midtrans\Transaction::status($request->order_id);
+    public function midtransCallback(Request $request)
+    {
+        $notif = $request->method() == 'POST' ? new Midtrans\Notification() : Midtrans\Transaction::status($request->order_id);
 
-    //     $transaction_status = $notif->transaction_status;
-    //     $fraud = $notif->fraud_status;
+        $transaction_status = $notif->transaction_status;
+        $fraud = $notif->fraud_status;
 
-    //     $checkout_id = explode('-', $notif->order_id)[0];
-    //     $checkout = Checkout::find($checkout_id);
+        $checkout_id = explode('-', $notif->order_id)[0];
+        $checkout = Checkout::find($checkout_id);
 
-    //     if ($transaction_status == 'capture') {
-    //         if ($fraud == 'challenge') {
-    //             // TODO Set payment status in merchant's database to 'challenge'
-    //             $checkout->payment_status = 'pending';
-    //         }
-    //         else if ($fraud == 'accept') {
-    //             // TODO Set payment status in merchant's database to 'success'
-    //             $checkout->payment_status = 'paid';
-    //         }
-    //     }
-    //     else if ($transaction_status == 'cancel') {
-    //         if ($fraud == 'challenge') {
-    //             // TODO Set payment status in merchant's database to 'failure'
-    //             $checkout->payment_status = 'failed';
-    //         }
-    //         else if ($fraud == 'accept') {
-    //             // TODO Set payment status in merchant's database to 'failure'
-    //             $checkout->payment_status = 'failed';
-    //         }
-    //     }
-    //     else if ($transaction_status == 'deny') {
-    //         // TODO Set payment status in merchant's database to 'failure'
-    //         $checkout->payment_status = 'failed';
-    //     }
-    //     else if ($transaction_status == 'settlement') {
-    //         // TODO set payment status in merchant's database to 'Settlement'
-    //         $checkout->payment_status = 'paid';
-    //     }
-    //     else if ($transaction_status == 'pending') {
-    //         // TODO set payment status in merchant's database to 'Pending'
-    //         $checkout->payment_status = 'pending';
-    //     }
-    //     else if ($transaction_status == 'expire') {
-    //         // TODO set payment status in merchant's database to 'expire'
-    //         $checkout->payment_status = 'failed';
-    //     }
+        if ($transaction_status == 'capture') {
+            if ($fraud == 'challenge') {
+                // TODO Set payment status in merchant's database to 'challenge'
+                $checkout->payment_status = 'pending';
+            }
+            else if ($fraud == 'accept') {
+                // TODO Set payment status in merchant's database to 'success'
+                $checkout->payment_status = 'paid';
+            }
+        }
+        else if ($transaction_status == 'cancel') {
+            if ($fraud == 'challenge') {
+                // TODO Set payment status in merchant's database to 'failure'
+                $checkout->payment_status = 'failed';
+            }
+            else if ($fraud == 'accept') {
+                // TODO Set payment status in merchant's database to 'failure'
+                $checkout->payment_status = 'failed';
+            }
+        }
+        else if ($transaction_status == 'deny') {
+            // TODO Set payment status in merchant's database to 'failure'
+            $checkout->payment_status = 'failed';
+        }
+        else if ($transaction_status == 'settlement') {
+            // TODO set payment status in merchant's database to 'Settlement'
+            $checkout->payment_status = 'paid';
+        }
+        else if ($transaction_status == 'pending') {
+            // TODO set payment status in merchant's database to 'Pending'
+            $checkout->payment_status = 'pending';
+        }
+        else if ($transaction_status == 'expire') {
+            // TODO set payment status in merchant's database to 'expire'
+            $checkout->payment_status = 'failed';
+        }
 
-    //     $checkout->save();
-    //     return view('checkout/success');
-    // }
-    
+        $checkout->save();
+        return view('checkout/success');
+    }
 }

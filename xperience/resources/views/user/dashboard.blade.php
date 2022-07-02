@@ -19,29 +19,35 @@
                         @forelse ($checkouts as $checkout)
                             <tr class="align-middle">
                                 <td width="18%">
-                                    <img src="{{asset('images/komodo2')}}" height="120" alt="">
+                                    <img src="{{asset('images/komodo1')}}" height="120" alt="">
                                 </td>
                                 <td>
                                     <p class="mb-2">
                                         <strong>{{$checkout->Trip->title}}</strong>
                                     </p>
                                     <p>
-                                        {{$checkout->created_at->format('M d, Y')}}
+                                        {{$checkout->created_at->format('M d Y')}}
                                     </p>
                                 </td>
                                 <td>
                                     <strong>
                                            Rp. {{$checkout->total}}
+                                       
                                         @if ($checkout->discount_id)
                                             <span class="badge bg-success">Disc {{$checkout->discount_percentage}}%</span>
                                         @endif
                                     </strong>
                                 </td>
                                 <td>
-                                    <strong>{{$checkout->payment_status}}</strong>
+                                @if ($checkout->payment_status)
+                                        <span class="badge bg-success">Paid</span>
+                                        @else
+                                        <span class="badge bg-warning">Waiting</span>
+                                        @endif
+                                    
                                 </td>
                                 <td>
-                                    @if ($checkout->payment_status == 'waiting')
+                                @if ($checkout->payment_status == '0')
                                         <a href="{{$checkout->midtrans_url}}" class="btn btn-primary">Pay Here</a>
                                     @endif
                                 </td>

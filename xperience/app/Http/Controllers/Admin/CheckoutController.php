@@ -12,7 +12,7 @@ class CheckoutController extends Controller
 {
     public function update(Request $request, Checkout $checkout)
     {
-        $checkout->is_paid = true;
+        $checkout->payment_status = true;
         $checkout->save();
         $request->session()->flash('success', "Checkout with ID {$checkout->id} has been updated!");
 

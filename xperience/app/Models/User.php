@@ -26,6 +26,7 @@ class User extends Authenticatable
         'avatar',
         'country',
         'phone',
+        'nationality',
         'is_admin'
     ];
 

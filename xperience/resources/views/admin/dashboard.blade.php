@@ -35,15 +35,15 @@
                                        
                                     </strong></td>
                                         <td>{{$checkout->created_at->format('M d Y')}}</td>
-                                        <td><strong>{{$checkout->payment_status}}</strong>
-
-                                        @if ($checkout->is_paid)
+                                        <td>@if ($checkout->payment_status)
                                         <span class="badge bg-success">Paid</span>
                                         @else
                                         <span class="badge bg-warning">Waiting</span>
-                                        @endif</td>
+                                        @endif</td></strong>
+
+                                        
                                         <td>
-                                        @if (!$checkout->is_paid)
+                                        @if (!$checkout->payment_status)
                                             <form action="{{route('admin.checkout.update', $checkout->id)}}" method="POST">
                                                 @csrf<button class="btn btn-primary btn-sm">Set to Paid</button>
                                             </form>
