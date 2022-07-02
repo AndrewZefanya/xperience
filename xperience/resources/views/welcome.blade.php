@@ -139,7 +139,7 @@
 		<div class="destination-content">
 			
 			<div class="col-content">
-			<a href="{{route('checkout')}}">
+			<a href="{{route('checkout.create', 'komodo-island')}}">
 				<img src="img/img-1.jpg">
 				<h5>Komodo Island</h5>
 				<p>Nusa Tenggara</p>
@@ -148,10 +148,10 @@
 
 			
 			<div class="col-content">
-			<a href="{{route('checkout')}}">
+			<a href="{{route('checkout.create', 'jomblang-cave')}}">
 				<img src="img/img-2.jpg">
-				<h5>Machu Picchu</h5>
-				<p>PERU</p>
+				<h5>Jomblang Cave</h5>
+				<p>Yogyakarta</p>
 			</a>
 			</div>
 			

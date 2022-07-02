@@ -9,7 +9,7 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#home">Home</a>
+                        <a class="nav-link active" aria-current="page" href="{{route('welcome')}}">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#package">Package</a>
@@ -36,7 +36,7 @@
                         
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink" style="right: 0; left: auto">
                             <li>
-                               <a href="{{route('dashboard')}}" class="dropdown-item">My Dashboard</a>
+                               <a href="{{route('dashboard')}}" class="dropdown-item">My Adventures</a>
                             </li>
                             @if (Auth::user()->is_admin)
                                 <li>

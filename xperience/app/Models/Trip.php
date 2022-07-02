@@ -12,7 +12,7 @@ use App\Models\Checkout;
 
 class Trip extends Model
 {
-    use HasFactory,SoftDeletes;
+    use HasFactory, SoftDeletes;
     protected $fillable = ['title', 'price'];
 
    
